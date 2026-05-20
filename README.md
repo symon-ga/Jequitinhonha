@@ -1,5 +1,4 @@
-[ativo-jequitinhonha.html](https://github.com/user-attachments/files/28057465/ativo-jequitinhonha.html)
-<!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
