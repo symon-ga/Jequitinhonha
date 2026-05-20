@@ -200,12 +200,13 @@
       border-right: 1px solid rgba(61,191,114,.12);
     }
     .data-table td:last-child {
-      color: #ffffff;
-      font-weight: 500;
-      background: rgba(255,255,255,.03);
+      color: #0d1f10;
+      font-weight: 600;
+      background: rgba(255,255,255,.78);
     }
     .data-table tr:hover td { background: rgba(61,191,114,.07); }
     .data-table tr:hover td:first-child { background: rgba(61,191,114,.1); }
+    .data-table tr:hover td:last-child { color: #0d1f10; background: rgba(200,240,215,.7); }
 
     /* ── BUYERS ──────────────────────────── */
     .buyers-grid {
