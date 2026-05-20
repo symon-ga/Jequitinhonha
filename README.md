@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -31,7 +31,8 @@
     /* ── HERO ─────────────────────────────── */
     .hero {
       position: relative;
-      min-height: 100svh;
+      height: 100vh;
+      min-height: 600px;
       display: flex;
       align-items: center;
       overflow: hidden;
@@ -39,10 +40,12 @@
 
     #terrain-canvas {
       position: absolute;
-      inset: 0;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
       z-index: 0;
+      display: block;
     }
 
     .hero-overlay {
@@ -180,22 +183,29 @@
 
     .data-table {
       width: 100%;
-      border: 1px solid rgba(61,191,114,.12);
+      border: 1px solid rgba(61,191,114,.2);
       border-radius: 10px;
       overflow: hidden;
       border-collapse: separate;
       border-spacing: 0;
     }
-    .data-table tr:not(:last-child) td { border-bottom: 1px solid rgba(61,191,114,.07); }
+    .data-table tr:not(:last-child) td { border-bottom: 1px solid rgba(61,191,114,.1); }
     .data-table td { padding: 1rem 1.5rem; font-size: .9rem; vertical-align: top; }
     .data-table td:first-child {
       width: 38%;
       font-size: .77rem; text-transform: uppercase; letter-spacing: .09em;
-      color: var(--muted); background: rgba(255,255,255,.02);
-      border-right: 1px solid rgba(61,191,114,.07);
+      color: var(--glow2);
+      font-weight: 600;
+      background: rgba(61,191,114,.06);
+      border-right: 1px solid rgba(61,191,114,.12);
     }
-    .data-table td:last-child { color: #fff; font-weight: 500; }
-    .data-table tr:hover td { background: rgba(61,191,114,.04); }
+    .data-table td:last-child {
+      color: #ffffff;
+      font-weight: 500;
+      background: rgba(255,255,255,.03);
+    }
+    .data-table tr:hover td { background: rgba(61,191,114,.07); }
+    .data-table tr:hover td:first-child { background: rgba(61,191,114,.1); }
 
     /* ── BUYERS ──────────────────────────── */
     .buyers-grid {
@@ -503,21 +513,18 @@ const latMin = Math.min(...lats), latMax = Math.max(...lats);
 const lonRange = lonMax - lonMin;
 const latRange = latMax - latMin;
 
-// Particles pool
 const PARTICLE_COUNT = 65;
 let particles = [];
 
 function resize() {
-  canvas.width  = canvas.offsetWidth;
-  canvas.height = canvas.offsetHeight;
+  const hero = canvas.parentElement;
+  canvas.width  = hero.offsetWidth;
+  canvas.height = hero.offsetHeight;
   spawnParticles();
 }
 
-// Project a KML coord to canvas space, keeping aspect ratio
-// Places polygon in right 55% of canvas, vertically centered
 function project(lon, lat, W, H) {
   const pad = Math.min(W, H) * 0.06;
-  // Target rect: right 55%, full height
   const rx = W * 0.36, ry = pad, rw = W * 0.62 - pad, rh = H - pad * 2;
 
   const aspect = lonRange / latRange;
@@ -582,11 +589,9 @@ function draw(t) {
 
   ctx.clearRect(0, 0, W, H);
 
-  // Deep background
   ctx.fillStyle = '#040c08';
   ctx.fillRect(0, 0, W, H);
 
-  // ── outer glow rings ──
   for (let ring = 5; ring >= 1; ring--) {
     ctx.beginPath();
     pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
@@ -598,7 +603,6 @@ function draw(t) {
     ctx.stroke();
   }
 
-  // ── terrain fill ──
   const gFill = ctx.createLinearGradient(cx - W * 0.2, cy - H * 0.3, cx + W * 0.15, cy + H * 0.3);
   gFill.addColorStop(0,   `rgba(26,75,46,${0.52 + pulse * 0.1})`);
   gFill.addColorStop(0.5, `rgba(18,54,32,${0.46})`);
@@ -610,7 +614,6 @@ function draw(t) {
   ctx.fillStyle = gFill;
   ctx.fill();
 
-  // ── interior grid (clipped) ──
   ctx.save();
   ctx.beginPath();
   pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
@@ -623,7 +626,6 @@ function draw(t) {
   for (let gx = 0; gx < W; gx += gs) { ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,H); ctx.stroke(); }
   for (let gy = 0; gy < H; gy += gs) { ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(W,gy); ctx.stroke(); }
 
-  // ── scan line ──
   scanOffset = (scanOffset + 0.5) % (H + 120);
   const sy = scanOffset - 60;
   const gScan = ctx.createLinearGradient(0, sy - 70, 0, sy + 70);
@@ -635,7 +637,6 @@ function draw(t) {
 
   ctx.restore();
 
-  // ── outline ──
   ctx.beginPath();
   pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
   ctx.closePath();
@@ -644,7 +645,6 @@ function draw(t) {
   ctx.lineJoin = 'round';
   ctx.stroke();
 
-  // ── vertex dots ──
   pts.forEach(([x, y]) => {
     ctx.beginPath();
     ctx.arc(x, y, 2.2, 0, Math.PI * 2);
@@ -652,20 +652,17 @@ function draw(t) {
     ctx.fill();
   });
 
-  // ── animated area label ──
   ctx.save();
   ctx.globalAlpha = 0.7 + pulse * 0.2;
   ctx.font = `bold ${Math.max(11, Math.min(14, W * 0.012))}px 'Segoe UI', sans-serif`;
   ctx.fillStyle = 'rgba(61,191,114,0.9)';
   ctx.textAlign = 'center';
-  ctx.letterSpacing = '0.1em';
   ctx.fillText('669,4 ha', cx, cy - 8);
   ctx.font = `${Math.max(9, Math.min(11, W * 0.009))}px 'Segoe UI', sans-serif`;
   ctx.fillStyle = 'rgba(110,168,130,0.7)';
   ctx.fillText('Fazenda Chapada das Dornelas', cx, cy + 12);
   ctx.restore();
 
-  // ── particles ──
   const [cx2, cy2] = centroid(getPoints(W, H));
   particles.forEach(p => {
     p.x += p.vx; p.y += p.vy;
@@ -678,7 +675,6 @@ function draw(t) {
     ctx.fill();
   });
 
-  // ── compass rose (top-right of polygon) ──
   const [cr_x, cr_y] = [pts.reduce((m,p) => Math.max(m,p[0]),0) - 30, pts.reduce((m,p) => Math.min(m,p[1]),H) + 22];
   drawCompass(cr_x, cr_y, 12, t, pulse);
 }
@@ -686,7 +682,6 @@ function draw(t) {
 function drawCompass(x, y, r, t, pulse) {
   ctx.save();
   ctx.globalAlpha = 0.55 + pulse * 0.2;
-  // N arrow
   ctx.beginPath();
   ctx.moveTo(x, y - r); ctx.lineTo(x - 4, y + 4); ctx.lineTo(x, y + 1); ctx.lineTo(x + 4, y + 4); ctx.closePath();
   ctx.fillStyle = 'rgba(61,191,114,0.9)';
